@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain} = require('electron/main')
+const {app, BrowserWindow,dialog, ipcMain} = require('electron/main')
 const path = require('node:path')
 const retrieve = require('./service/retrieve')
 var currentNoteIndex = 0;
@@ -8,7 +8,9 @@ async function handleNextNote(){
   if(files.length > currentNoteIndex +1){
     currentNoteIndex++
     const note = await retrieve.readFile(files[currentNoteIndex])
-    return note
+    const title = files[currentNoteIndex]
+    return {note : note,
+      title: title}
   } else{
     return null
   }
@@ -22,13 +24,18 @@ async function handlePreviousNote(){
   if(files.length > 0 ){
     currentNoteIndex--
     const note = await retrieve.readFile(files[currentNoteIndex])
-    return note
+    const title = files[currentNoteIndex]
+    return {note : note,
+      title: title}
   } else{
     return null
   }
 }
 function createWindow(){
   const mainWindow = new BrowserWindow({
+    width: 500,
+    height: 200,
+    frame: false,
     webPreferences:{
       preload: path.join(__dirname,'preload.js')
     }
@@ -37,11 +44,14 @@ function createWindow(){
 
 mainWindow.loadFile('index.html')
 mainWindow.webContents.on('did-finish-load',async ()=>{
+  const result = await dialog.showOpenDialog(mainWindow,{propetries:['openFile','openDirectory']})
+  console.log(result)
   const files = await retrieve.listFiles()
   if(files.length >0){
     const firstNote = await retrieve.readFile(files[0])
     if(firstNote !== null){
-    mainWindow.webContents.send('first-note',firstNote)
+      const obj = {note: firstNote, title: files[0]}
+    mainWindow.webContents.send('first-note',obj)
     }
   }
 })
