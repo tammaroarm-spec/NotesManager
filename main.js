@@ -1,4 +1,4 @@
-const {app, BrowserWindow,dialog, ipcMain} = require('electron/main')
+const {app, BrowserWindow,dialog, ipcMain, screen} = require('electron/main')
 const path = require('node:path')
 const retrieve = require('./service/retrieve')
 var currentNoteIndex = 0;
@@ -32,9 +32,18 @@ async function handlePreviousNote(){
   }
 }
 function createWindow(){
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const {width: screenWidth, height: screenHeight} = primaryDisplay.workAreaSize;
+
+  const windowWidth = 500;
+  const windowHeight = 200;
+
   const mainWindow = new BrowserWindow({
-    width: 500,
-    height: 200,
+    width: windowWidth,
+    height: windowHeight,
+    x: screenWidth -windowWidth,
+    y: screenHeight -windowHeight,
     frame: false,
     webPreferences:{
       preload: path.join(__dirname,'preload.js')
@@ -44,8 +53,8 @@ function createWindow(){
 
 mainWindow.loadFile('index.html')
 mainWindow.webContents.on('did-finish-load',async ()=>{
-  const result = await dialog.showOpenDialog(mainWindow,{propetries:['openFile','openDirectory']})
-  console.log(result)
+  // const result = await dialog.showOpenDialog(mainWindow,{propetries:['openFile','openDirectory']})
+  // console.log(result)
   const files = await retrieve.listFiles()
   if(files.length >0){
     const firstNote = await retrieve.readFile(files[0])
@@ -55,7 +64,7 @@ mainWindow.webContents.on('did-finish-load',async ()=>{
     }
   }
 })
-mainWindow.webContents.openDevTools()
+// mainWindow.webContents.openDevTools()
 }
 
 app.whenReady().then(()=>{
