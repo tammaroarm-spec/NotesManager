@@ -24,6 +24,7 @@
     "electron": "^41.7.1"
   },
   "dependencies": {
+    "dotenv": "^18.0.10",
     "electron-squirrel-startup": "^1.0.1"
   }
 }
